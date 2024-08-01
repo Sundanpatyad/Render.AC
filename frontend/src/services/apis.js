@@ -1,4 +1,4 @@
-const BASE_URL = 'https://renderac-production.up.railway.app';
+const BASE_URL = 'https://awakening-classes.up.railway.app';
 // const BASE_URL = 'https://awakening-classes.onrender.com';
 
 // AUTH ENDPOINTS
