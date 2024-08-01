@@ -42,22 +42,22 @@ export default function MobileProfileDropDown() {
         fetchSublinks();
     }, [])
 
-    const drawerVariants = {
-        hidden: { y: "100%" },
-        visible: { y: 0, transition: { type: "spring", stiffness: 300, damping: 30 } },
-        exit: { y: "100%", transition: { duration: 0.3 } }
+    const dropdownVariants = {
+        hidden: { opacity: 0, y: -20 },
+        visible: { opacity: 1, y: 0, transition: { duration: 0.3 } },
+        exit: { opacity: 0, y: -20, transition: { duration: 0.2 } }
     };
 
     const itemVariants = {
-        hidden: { opacity: 0, y: 20 },
-        visible: { opacity: 1, y: 0 }
+        hidden: { opacity: 0, x: -20 },
+        visible: { opacity: 1, x: 0 }
     };
 
     return (
-        <div className="sm:hidden">
+        <div className="relative sm:hidden">
             <button 
                 className="flex items-center gap-x-1 bg-black p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-white transition-all duration-300"
-                onClick={() => setOpen(true)}
+                onClick={() => setOpen(!open)}
             >
                 <Img
                     src={user?.image}
@@ -69,56 +69,44 @@ export default function MobileProfileDropDown() {
 
             <AnimatePresence>
                 {open && (
-                    <>
-                        <motion.div
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 0.5 }}
-                            exit={{ opacity: 0 }}
-                            className="fixed inset-0 bg-black z-40"
-                            onClick={() => setOpen(false)}
-                        />
-                        <motion.div
-                            initial="hidden"
-                            animate="visible"
-                            exit="exit"
-                            variants={drawerVariants}
-                            className="fixed bottom-0 left-0 right-0 z-50 bg-black rounded-t-3xl shadow-lg"
-                            ref={ref}
-                        >
-                            <div className="p-4 overflow-y-auto max-h-[80vh]">
-                                <div className="w-12 h-1 bg-gray-500 rounded-full mx-auto mb-4" />
-                                {[
-                                    { to: "/dashboard/my-profile", icon: VscDashboard, label: "Dashboard" },
-                                    { to: "/", icon: AiOutlineHome, label: "Home" },
-                                    { to: "/catalog/mock-tests", icon: PiNotebook, label: "Courses" },
-                                    { to: "/mocktest", icon: PiNotebook, label: "Mock Tests" },
-                                    { to: "/about", icon: TbMessage2Plus, label: "About Us" },
-                                    { to: "/contact", icon: MdOutlineContactPhone, label: "Contact Us" },
-                                ].map((item, index) => (
-                                    <motion.div key={index} variants={itemVariants} transition={{ delay: index * 0.1 }}>
-                                        <Link to={item.to} onClick={() => setOpen(false)}>
-                                            <div className="flex items-center gap-x-4 py-4 px-2 text-base text-richblack-100 hover:bg-richblack-700 transition-colors duration-300 rounded-lg">
-                                                <item.icon className="text-2xl text-white" />
-                                                {item.label}
-                                            </div>
-                                        </Link>
-                                    </motion.div>
-                                ))}
-                                <motion.div variants={itemVariants} transition={{ delay: 0.6 }}>
-                                    <div
-                                        onClick={() => {
-                                            dispatch(logout(navigate))
-                                            setOpen(false)
-                                        }}
-                                        className="flex items-center gap-x-4 py-4 px-2 text-base text-richblack-100 hover:bg-richblack-700 transition-colors duration-300 rounded-lg cursor-pointer"
-                                    >
-                                        <VscSignOut className="text-2xl text-white" />
-                                        Logout
+                    <motion.div
+                        initial="hidden"
+                        animate="visible"
+                        exit="exit"
+                        variants={dropdownVariants}
+                        className="absolute min-w-[200px] top-[118%] right-0 z-[1000] overflow-hidden rounded-lg border-[1px] border-richblack-700 bg-black shadow-lg"
+                        ref={ref}
+                    >
+                        {[
+                            { to: "/dashboard/my-profile", icon: VscDashboard, label: "Dashboard" },
+                            { to: "/", icon: AiOutlineHome, label: "Home" },
+                            { to: "/catalog/mock-tests", icon: PiNotebook, label: "Courses" },
+                            { to: "/mocktest", icon: PiNotebook, label: "Mock Tests" },
+                            { to: "/about", icon: TbMessage2Plus, label: "About Us" },
+                            { to: "/contact", icon: MdOutlineContactPhone, label: "Contact Us" },
+                        ].map((item, index) => (
+                            <motion.div key={index} variants={itemVariants} transition={{ delay: index * 0.1 }}>
+                                <Link to={item.to} onClick={() => setOpen(false)}>
+                                    <div className="flex w-full items-center gap-x-2 py-3 px-4 text-sm text-richblack-100 hover:bg-richblack-700 transition-colors duration-300">
+                                        <item.icon className="text-lg text-white" />
+                                        {item.label}
                                     </div>
-                                </motion.div>
+                                </Link>
+                            </motion.div>
+                        ))}
+                        <motion.div variants={itemVariants} transition={{ delay: 0.6 }}>
+                            <div
+                                onClick={() => {
+                                    dispatch(logout(navigate))
+                                    setOpen(false)
+                                }}
+                                className="flex w-full items-center gap-x-2 py-3 px-4 text-sm text-richblack-100 hover:bg-richblack-700 transition-colors duration-300 cursor-pointer"
+                            >
+                                <VscSignOut className="text-lg text-white" />
+                                Logout
                             </div>
                         </motion.div>
-                    </>
+                    </motion.div>
                 )}
             </AnimatePresence>
         </div>
