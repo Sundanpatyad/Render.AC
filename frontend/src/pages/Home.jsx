@@ -228,9 +228,9 @@ const Home = () => {
         </motion.div>
 
         <div className='flex flex-row gap-7 mt-8'>
-          <CTAButton active={false} linkto={"/login"}>
+          <Link to={"/login"} className="w-full py-4 px-5 bg-white text-black rounded-lg text-center transition-all duration-300 hover:bg-richblack-900 hover:text-white text-xs">
             Explore The Knowledge
-          </CTAButton>
+          </Link>
         </div>
       </div>
 
