@@ -110,7 +110,6 @@ const MockTestComponent = () => {
   const [confirmationModal, setConfirmationModal] = useState(null)
   const navigate = useNavigate()
   const dispatch = useDispatch()
-  const queryClient = useQueryClient()
 
   const { data: mockTests, isLoading } = useQuery(
     'mockTests',
@@ -164,11 +163,11 @@ const MockTestComponent = () => {
 
     try {
       await buyItem(token, [mockTest._id], ['MOCK_TEST'], user, navigate, dispatch)
-      queryClient.invalidateQueries('mockTests')
+      
     } catch (error) {
       console.error("Error purchasing mock test:", error)
     }
-  }, [isLoggedIn, user, navigate, dispatch, queryClient, token])
+  }, [isLoggedIn, user, navigate, dispatch, token])
 
   const handleStartTest = useCallback((mockTestId) => {
     if (!isLoggedIn) {
