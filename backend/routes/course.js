@@ -12,6 +12,7 @@ const {
     editCourse,
     deleteCourse,
     getInstructorCourses,
+    searchCoursesAndMockTests,
 
 } = require('../controllers/course')
 
