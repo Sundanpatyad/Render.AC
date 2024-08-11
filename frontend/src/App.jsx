@@ -1,7 +1,8 @@
-
 import { useEffect, useState } from "react";
 import { Route, Routes, useLocation, Link } from "react-router-dom";
 import { useSelector } from "react-redux";
+import { motion } from 'framer-motion';
+import ReactTypingEffect from 'react-typing-effect';
 
 import Home from "./pages/Home"
 import Login from "./pages/Login"
@@ -27,7 +28,6 @@ import MyCourses from './components/core/Dashboard/MyCourses';
 import EditCourse from './components/core/Dashboard/EditCourse/EditCourse';
 import Instructor from './components/core/Dashboard/Instructor';
 
-
 import Cart from "./components/core/Dashboard/Cart/Cart";
 import EnrolledCourses from "./components/core/Dashboard/EnrolledCourses";
 import AddCourse from "./components/core/Dashboard/AddCourse/AddCourse";
@@ -39,21 +39,20 @@ import { ACCOUNT_TYPE } from './utils/constants';
 
 import { HiArrowNarrowUp } from "react-icons/hi"
 import Mocktest from "./pages/Mocktest";
-import AddMockTest from "./components/core/Dashboard/AddCourse/AddMockTest";
-import ViewMockTest from "./components/core/Dashboard/AddCourse/ViewMockTest";
 import AddMockTestSeries from "./components/core/Dashboard/AddCourse/MockTestSeries";
-import MockTestProductPage from "./pages/MockDetails";
 import MockTestDetails from "./pages/MockDetails";
 import MockTestSeries from "./components/core/ConductMockTests/MockTestSeries";
 import EditMockTestSeries from "./components/core/Dashboard/AddCourse/EditMockTest";
+import RankingsPage from "./components/core/Rankings/Ranking";
+import PageLoader from "./components/ui/PageLoader";
 
 
 function App() {
-
   const { user } = useSelector((state) => state.profile)
-
-  // Scroll to the top of the page when the component mounts
   const location = useLocation();
+  const [showArrow, setShowArrow] = useState(false)
+  const [isPageLoading, setIsPageLoading] = useState(true)
+
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [location.pathname])
@@ -65,10 +64,6 @@ function App() {
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [])
-
-
-  // Go upward arrow - show , unshow
-  const [showArrow, setShowArrow] = useState(false)
 
   const handleArrow = () => {
     if (window.scrollY > 500) {
@@ -83,14 +78,24 @@ function App() {
     }
   }, [showArrow])
 
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsPageLoading(false)
+    }, 1500) // Adjust this time as needed
+
+    return () => clearTimeout(timer)
+  }, [])
+
+  if (isPageLoading) {
+    return <PageLoader />
+  }
 
   return (
     <div className="w-screen min-h-screen bg-black flex flex-col font-inter">
       <Navbar />
 
-      {/* go upward arrow */}
       <button onClick={() => window.scrollTo(0, 0)}
-        className={`bg-white  p-3 text-lg text-black rounded-2xl fixed right-3 z-10 duration-500 ease-in-out ${showArrow ? 'bottom-6' : '-bottom-24'} `} >
+        className={`bg-white hover:bg-white hover:scale-110 p-3 text-lg text-black rounded-2xl fixed right-3 z-10 duration-500 ease-in-out ${showArrow ? 'bottom-6' : '-bottom-24'} `} >
         <HiArrowNarrowUp />
       </button>
 
@@ -98,12 +103,11 @@ function App() {
         <Route path="/" element={<Home />} />
         <Route path="/contact" element={<Contact />} />
         <Route path="/about" element={<About />} />
+        <Route path="/rankings" element={<RankingsPage />} />
         <Route path="catalog/:catalogName" element={<Catalog />} />
         <Route path="courses/:courseId" element={<CourseDetails />} />
         <Route path="/mock-test/:mockId" element={<MockTestDetails />} />
 
-
-        {/* Open Route - for Only Non Logged in User */}
         <Route
           path="signup" element={
             <OpenRoute>
@@ -144,11 +148,6 @@ function App() {
           }
         />
 
-
-
-
-        {/* Protected Route - for Only Logged in User */}
-        {/* Dashboard */}
         <Route element={
           <ProtectedRoute>
             <Dashboard />
@@ -158,8 +157,6 @@ function App() {
           <Route path="dashboard/my-profile" element={<MyProfile />} />
           <Route path="dashboard/Settings" element={<Settings />} />
 
-          {/* Route only for Students */}
-          {/* cart , EnrolledCourses */}
           {user?.accountType === ACCOUNT_TYPE.STUDENT && (
             <>
               <Route path="dashboard/cart" element={<Cart />} />
@@ -167,14 +164,11 @@ function App() {
             </>
           )}
 
-          {/* Route only for Instructors */}
-          {/* add course , MyCourses, EditCourse*/}
           {user?.accountType === ACCOUNT_TYPE.INSTRUCTOR && (
             <>
               <Route path="dashboard/instructor" element={<Instructor />} />
               <Route path="dashboard/add-course" element={<AddCourse />} />
               <Route path="dashboard/add-mocktest" element={<AddMockTestSeries />} />
-              <Route path="dashboard/add-mocktest/:id" element={<AddMockTest />} />
               <Route path="dashboard/my-courses" element={<MyCourses />} />
               <Route path="dashboard/edit-course/:courseId" element={<EditCourse />} />
               <Route path="dashboard/edit-mock-test-series/:seriesId" element={<EditMockTestSeries />} />
@@ -182,8 +176,6 @@ function App() {
           )}
         </Route>
 
-
-        {/* For the watching course lectures */}
         <Route
           element={
             <ProtectedRoute>
@@ -198,7 +190,6 @@ function App() {
             element={<VideoDetails />}
           /> 
           </>
-            
           )}
         </Route>
         <Route
@@ -206,15 +197,10 @@ function App() {
               element={<Mocktest/>}
             />
         
-        
-
-
-
         <Route
             path="view-mock/:mockId"
             element={<MockTestSeries />}
           />
-        {/* Page Not Found (404 Page ) */}
         <Route path="*" element={<PageNotFound />} />
 
       </Routes>

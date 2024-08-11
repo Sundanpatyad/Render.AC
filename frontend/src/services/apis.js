@@ -1,5 +1,6 @@
+
 const BASE_URL = 'https://awakening-classes.up.railway.app';
-// const BASE_URL = 'https://awakening-classes.onrender.com';
+// const BASE_URL = 'http://localhost:8000';
 
 // AUTH ENDPOINTS
 export const endpoints = {
@@ -26,6 +27,7 @@ export const studentEndpoints = {
   COURSE_PAYMENT_API: `${BASE_URL}/api/v1/payment/capturePayment`,
   COURSE_VERIFY_API: `${BASE_URL}/api/v1/payment/verifyPayment`,
   SEND_PAYMENT_SUCCESS_EMAIL_API: `${BASE_URL}/api/v1/payment/sendPaymentSuccessEmail`,
+  RANKINGS_API:`${BASE_URL}/api/v1/mock/getRankings`
 }
 
 // MOCK TEST PAYMENT ENDPOINTS
@@ -91,7 +93,9 @@ export const mocktestEndpoints = {
   FETCH_MOCKTEST_BY_ID:`${BASE_URL}/api/v1/mock/getMockTestSeriesById`,
   ENORLL_MOCKTEST:`${BASE_URL}/api/v1/mock/enroll`,
   GET_MCOKTEST_SERIES_BY_ID:`${BASE_URL}/api/v1/mock/getMockTestSeriesById`,
-  CREATE_ATTEMPT_DETAILS:`${BASE_URL}/api/v1/mock/createAttemptDetails`
+  CREATE_ATTEMPT_DETAILS:`${BASE_URL}/api/v1/mock/createAttemptDetails`,
+  TEXT_EDIT_MOCKTEST:`${BASE_URL}/api/v1/mock/addMocktestToSeries`,
+  SEARCH_API:`${BASE_URL}/api/v1/course/search`
   // http://localhost:8000/api/v1/mock/getMockTestSeriesById
 
 }

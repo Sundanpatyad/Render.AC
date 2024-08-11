@@ -4,6 +4,8 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import { FaTrash } from 'react-icons/fa';
 import { fetchSeries } from '../../../../services/operations/mocktest';
 import { saveSeries } from '../../../../services/operations/profileAPI';
+import AddMockTest from './AddTextQuestions';
+import AddAttachments from './AddOMRbased';
 
 const EditMockTestSeries = () => {
   const { token } = useSelector((state) => state.auth);
@@ -12,6 +14,14 @@ const EditMockTestSeries = () => {
   const [series, setSeries] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [submitStatus, setSubmitStatus] = useState(null);
+  const [isAddMockTestModalOpen, setIsAddMockTestModalOpen] = useState(false);
+  const [isAddAttachmentsModalOpen, setIsAddAttachmentsModalOpen] = useState(false);
+
+  const openAddMockTestModal = () => setIsAddMockTestModalOpen(true);
+  const closeAddMockTestModal = () => setIsAddMockTestModalOpen(false);
+
+  const openAddAttachmentsModal = () => setIsAddAttachmentsModalOpen(true);
+  const closeAddAttachmentsModal = () => setIsAddAttachmentsModalOpen(false);
 
   useEffect(() => {
     const loadSeries = async () => {
@@ -25,7 +35,6 @@ const EditMockTestSeries = () => {
     loadSeries();
   }, [seriesId, token]);
  
-
   const handleSeriesChange = (e) => {
     setSeries({ ...series, [e.target.name]: e.target.value });
   };
@@ -93,10 +102,21 @@ const EditMockTestSeries = () => {
     setSeries({ ...series, mockTests: updatedTests });
   };
 
+  const handleAttachmentChange = (index, field, value) => {
+    const updatedAttachments = [...series.attachments];
+    updatedAttachments[index] = { ...updatedAttachments[index], [field]: value };
+    setSeries({ ...series, attachments: updatedAttachments });
+  };
+
+  const deleteAttachment = (index) => {
+    const updatedAttachments = [...series.attachments];
+    updatedAttachments.splice(index, 1);
+    setSeries({ ...series, attachments: updatedAttachments });
+  };
+
   const handleSaveSeries = async () => {
     setIsLoading(true);
 
-    // Prepare the data to be sent
     const seriesData = {
       seriesName: series.seriesName,
       description: series.description,
@@ -111,7 +131,8 @@ const EditMockTestSeries = () => {
           options: question.options,
           correctAnswer: question.correctAnswer
         }))
-      }))
+      })),
+      attachments: series.attachments
     };
 
     console.log(seriesData);
@@ -120,11 +141,31 @@ const EditMockTestSeries = () => {
     setIsLoading(false);
 
     if (result) {
-      // If the update was successful, navigate to the instructor dashboard
+      setSubmitStatus('success');
       setTimeout(() => {
         navigate('/dashboard/instructor');
       }, 1000);
+    } else {
+      setSubmitStatus('error');
     }
+  };
+
+  const Modal = ({ isOpen, onClose, children }) => {
+    if (!isOpen) return null;
+  
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+        <div className="bg-gray-800 rounded-lg p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+          <button
+            onClick={onClose}
+            className="float-right text-gray-300 hover:text-white"
+          >
+            &times;
+          </button>
+          {children}
+        </div>
+      </div>
+    );
   };
 
   if (isLoading) {
@@ -141,6 +182,7 @@ const EditMockTestSeries = () => {
         <h1 className="mb-14 text-3xl font-medium text-richblack-5 font-boogaloo text-center lg:text-left">
           Edit Mock Test Series
         </h1>
+       
         <div className="flex-1">
           <form onSubmit={(e) => { e.preventDefault(); handleSaveSeries(); }} className="space-y-8">
             <div>
@@ -151,7 +193,7 @@ const EditMockTestSeries = () => {
                 name="seriesName"
                 value={series.seriesName}
                 onChange={handleSeriesChange}
-                className="mt-1 block w-full bg-richblack-700 border border-richblack-600 rounded-md shadow-sm py-2 px-3 text-richblack-5 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
+                className="mt-1 block w-full bg-richblack-700 border border-richblack-600 rounded-md shadow-sm py-2 px-3 text-richblack-5 focus:outline-none focus:ring-2 "
               />
             </div>
             <div>
@@ -161,9 +203,10 @@ const EditMockTestSeries = () => {
                 name="description"
                 value={series.description}
                 onChange={handleSeriesChange}
-                className="mt-1 block w-full bg-richblack-700 border border-richblack-600 rounded-md shadow-sm py-2 px-3 text-richblack-5 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
+                className="mt-1 block w-full bg-richblack-700 border border-richblack-600 rounded-md shadow-sm py-2 px-3 text-richblack-5 focus:outline-none focus:ring-2"
               ></textarea>
             </div>
+
             <div>
               <label htmlFor="price" className="block text-sm font-medium text-richblack-5">Price</label>
               <input
@@ -172,7 +215,7 @@ const EditMockTestSeries = () => {
                 name="price"
                 value={series.price}
                 onChange={handleSeriesChange}
-                className="mt-1 block w-full bg-richblack-700 border border-richblack-600 rounded-md shadow-sm py-2 px-3 text-richblack-5 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
+                className="mt-1 block w-full bg-richblack-700 border border-richblack-600 rounded-md shadow-sm py-2 px-3 text-richblack-5 focus:outline-none focus:ring-2"
               />
             </div>
             <div>
@@ -182,12 +225,52 @@ const EditMockTestSeries = () => {
                 name="status"
                 value={series.status}
                 onChange={handleSeriesStatusChange}
-                className="mt-1 block w-full bg-richblack-700 border border-richblack-600 rounded-md shadow-sm py-2 px-3 text-richblack-5 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
+                className="mt-1 block w-full bg-richblack-700 border border-richblack-600 rounded-md shadow-sm py-2 px-3 text-richblack-5 focus:outline-none focus:ring-2"
               >
                 <option value="draft">Draft</option>
                 <option value="published">Published</option>
               </select>
             </div>
+
+          
+            {series.attachments && series.attachments.map((item, index) => (
+              <div key={item._id} className="bg-gray-800 p-6 rounded-lg shadow-md mb-6 relative">
+                <h2 className="text-2xl font-bold text-white mb-4">OMR Based Test</h2>
+                <div className="space-y-4">
+                  {['name', 'answerKey', 'omrSheet', 'questionPaper'].map((field) => (
+                    <div key={field} className="flex flex-col">
+                      <label htmlFor={`${field}-${index}`} className="text-gray-300 mb-1 capitalize">
+                        {field.replace(/([A-Z])/g, ' $1').trim()}:
+                      </label>
+                      <input 
+                        type="text" 
+                        id={`${field}-${index}`} 
+                        value={item[field]} 
+                        onChange={(e) => handleAttachmentChange(index, field, e.target.value)}
+                        className="bg-gray-700 text-white px-3 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                  ))}
+                  <div className="flex flex-col">
+                    <label htmlFor={`_id-${index}`} className="text-gray-300 mb-1">ID:</label>
+                    <input 
+                      type="text" 
+                      id={`_id-${index}`} 
+                      value={item._id} 
+                      readOnly 
+                      className="bg-gray-600 text-gray-300 px-3 py-2 rounded-md cursor-not-allowed"
+                    />
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => deleteAttachment(index)}
+                  className="absolute top-2 right-2 text-red-500 hover:text-red-700 transition-colors duration-200"
+                >
+                  <FaTrash />
+                </button>
+              </div>
+            ))}
 
             <h2 className="text-xl font-semibold mt-8 mb-4 text-richblack-5">Edit Tests</h2>
             {series.mockTests && series.mockTests.map((test, testIndex) => (
@@ -200,7 +283,7 @@ const EditMockTestSeries = () => {
                     name="testName"
                     value={test.testName}
                     onChange={(e) => handleTestChange(e, testIndex)}
-                    className="mt-1 block w-full bg-richblack-700 border border-richblack-600 rounded-md shadow-sm py-2 px-3 text-richblack-5 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
+                    className="mt-1 block w-full bg-richblack-700 border border-richblack-600 rounded-md shadow-sm py-2 px-3 text-richblack-5 focus:outline-none focus:ring-2 "
                   />
                 </div>
                 <div>
@@ -211,7 +294,7 @@ const EditMockTestSeries = () => {
                     name="duration"
                     value={test.duration}
                     onChange={(e) => handleTestChange(e, testIndex)}
-                    className="mt-1 block w-full bg-richblack-700 border border-richblack-600 rounded-md shadow-sm py-2 px-3 text-richblack-5 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
+                    className="mt-1 block w-full bg-richblack-700 border border-richblack-600 rounded-md shadow-sm py-2 px-3 text-richblack-5 focus:outline-none focus:ring-2 "
                   />
                 </div>
                 <div>
@@ -221,7 +304,7 @@ const EditMockTestSeries = () => {
                     name="status"
                     value={test.status}
                     onChange={(e) => handleTestStatusChange(e, testIndex)}
-                    className="mt-1 block w-full bg-richblack-700 border border-richblack-600 rounded-md shadow-sm py-2 px-3 text-richblack-5 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
+                    className="mt-1 block w-full bg-richblack-700 border border-richblack-600 rounded-md shadow-sm py-2 px-3 text-richblack-5 focus:outline-none focus:ring-2"
                   >
                     <option value="draft">Draft</option>
                     <option value="published">Published</option>
@@ -238,7 +321,7 @@ const EditMockTestSeries = () => {
                         name="text"
                         value={question.text}
                         onChange={(e) => handleQuestionChange(e, testIndex, questionIndex)}
-                        className="mt-1 block w-full bg-richblack-600 border border-richblack-500 rounded-md shadow-sm py-2 px-3 text-richblack-5 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
+                        className="mt-1 block w-full bg-richblack-600 border border-richblack-500 rounded-md shadow-sm py-2 px-3 text-richblack-5 focus:outline-none focus:ring-2"
                       />
                     </div>
                     {question.options && question.options.map((option, optionIndex) => (
@@ -255,14 +338,20 @@ const EditMockTestSeries = () => {
                     ))}
                     <div>
                       <label htmlFor={`correctAnswer-${testIndex}-${questionIndex}`} className="block text-sm font-medium text-richblack-5">Correct Answer</label>
-                      <input
-                        type="text"
+                      <select
                         id={`correctAnswer-${testIndex}-${questionIndex}`}
                         name="correctAnswer"
                         value={question.correctAnswer}
                         onChange={(e) => handleQuestionChange(e, testIndex, questionIndex)}
                         className="mt-1 block w-full bg-richblack-600 border border-richblack-500 rounded-md shadow-sm py-2 px-3 text-richblack-5 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
-                      />
+                      >
+                        <option value="">Select correct answer</option>
+                        {question.options.map((option, optionIndex) => (
+                          <option key={optionIndex} value={option}>
+                            {option}
+                          </option>
+                        ))}
+                      </select>
                     </div>
                     <button
                       type="button"
@@ -276,7 +365,7 @@ const EditMockTestSeries = () => {
                 <button
                   type="button"
                   onClick={() => addQuestion(testIndex)}
-                  className="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-richblack-900 bg-yellow-500 hover:bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 transition-colors duration-200"
+                  className="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-richblack-900 bg-white hover:bg-slate-200 focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors duration-200"
                 >
                   Add Question
                 </button>
@@ -293,7 +382,7 @@ const EditMockTestSeries = () => {
             <button
               type="button"
               onClick={addTest}
-              className="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-richblack-900 bg-yellow-500 hover:bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 transition-colors duration-200"
+              className="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-richblack-900 bg-white hover:bg-slate-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 transition-colors duration-200"
             >
               Add New Test
             </button>
@@ -301,12 +390,12 @@ const EditMockTestSeries = () => {
             <div className="flex gap-x-4">
               <button 
                 type="submit"
-                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-richblack-900 bg-yellow-500 hover:bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 transition-colors duration-200"
+                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-richblack-900 bg-white hover:bg-slate-200 focus:outline-none focus:ring-2 focus:ring-offset-2  transition-colors duration-200"
               >
                 Save Series
               </button>
               <Link to="/dashboard/instructor"
-                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-richblack-900 bg-yellow-500 hover:bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 transition-colors duration-200"
+                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-richblack-900 bg-white hover:bg-slate-200 focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors duration-200"
               >
                 Cancel
               </Link>
@@ -319,10 +408,28 @@ const EditMockTestSeries = () => {
             <p className="mt-4 text-3xl font-medium text-richblack-5">Error updating mock test series. Please try again.</p>
           )}
         </div>
+        <button
+          onClick={openAddMockTestModal}
+          className="mt-4 bg-white text-black py-2 px-4 rounded-md hover:bg-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-300 focus:ring-offset-2 "
+        >
+          Add Mock Test
+        </button>
+        <button
+          onClick={openAddAttachmentsModal}
+          className="mt-4 bg-white text-black py-2 px-4 rounded-md hover:bg-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-300 focus:ring-offset-2 "
+        >
+          Add Omr Based Test
+        </button>
+        <Modal isOpen={isAddMockTestModalOpen} onClose={closeAddMockTestModal}>
+          <AddMockTest seriesId={seriesId} onClose={closeAddMockTestModal} />
+        </Modal>
+        <Modal isOpen={isAddAttachmentsModalOpen} onClose={closeAddAttachmentsModal}>
+          <AddAttachments seriesId={seriesId} onClose={closeAddAttachmentsModal}/>
+        </Modal>
       </div>
       
-     {/* Tips Section */}
-     <div className="sticky top-10 hidden lg:block max-w-[400px] flex-1 rounded-md border-[1px] border-richblack-700 bg-richblack-800 p-6">
+      {/* Tips Section */}
+      <div className="sticky top-10 hidden lg:block max-w-[400px] flex-1 rounded-md border-[1px] border-richblack-700 bg-richblack-800 p-6">
         <p className="mb-8 text-lg text-richblack-5">⚡ Mock Test Series Editing Tips</p>
         <ul className="ml-5 list-item list-disc space-y-4 text-xs text-richblack-5">
           <li>Review and update the series name and description if needed.</li>

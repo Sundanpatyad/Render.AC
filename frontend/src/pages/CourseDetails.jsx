@@ -21,6 +21,7 @@ import { GiReturnArrow } from 'react-icons/gi'
 import { MdOutlineVerified } from 'react-icons/md'
 import Img from './../components/common/Img';
 import toast from "react-hot-toast"
+import LoadingSpinner from "../components/core/ConductMockTests/Spinner"
 
 function CourseDetails() {
   const { user } = useSelector((state) => state.profile)
@@ -37,9 +38,11 @@ function CourseDetails() {
   const [isActive, setIsActive] = useState(Array(0))
   const [totalNoOfLectures, setTotalNoOfLectures] = useState(0)
   const [isUserEnrolled, setIsUserEnrolled] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
     const fetchCourseDetailsData = async () => {
+      setIsLoading(true)
       try {
         const res = await fetchCourseDetails(courseId)
         setResponse(res)
@@ -49,6 +52,8 @@ function CourseDetails() {
         }
       } catch (error) {
         console.log("Could not fetch Course Details")
+      } finally {
+        setIsLoading(false)
       }
     }
     fetchCourseDetailsData();
@@ -79,22 +84,14 @@ function CourseDetails() {
     )
   }
 
-  if (paymentLoading || loading || !response) {
+  if (isLoading || paymentLoading || loading) {
     return (
-      <div className="mt-24 p-5 flex flex-col justify-center gap-4">
-        <div className="flex flex-col sm:flex-col-reverse gap-4">
-          <p className="h-44 sm:h-24 sm:w-[60%] rounded-xl skeleton"></p>
-          <p className="h-9 sm:w-[39%] rounded-xl skeleton"></p>
-        </div>
-        <p className="h-4 w-[55%] lg:w-[25%] rounded-xl skeleton"></p>
-        <p className="h-4 w-[75%] lg:w-[30%] rounded-xl skeleton"></p>
-        <p className="h-4 w-[35%] lg:w-[10%] rounded-xl skeleton"></p>
-        <div className="right-[1.5rem] top-[20%] hidden lg:block lg:absolute min-h-[450px] w-1/3 max-w-[410px] 
-            translate-y-24 md:translate-y-0 rounded-xl skeleton">
-        </div>
-        <p className="mt-24 h-60 lg:w-[60%] rounded-xl skeleton"></p>
-      </div>
+      <LoadingSpinner title={"Loading Course Details"}/>
     )
+  }
+
+  if (!response) {
+    return <div className="text-center mt-8">No course details available.</div>
   }
 
   const {
@@ -110,7 +107,7 @@ function CourseDetails() {
     studentsEnrolled,
     createdAt,
     tag
-  } = response?.data?.courseDetails
+  } = response.data.courseDetails
 
   const handleBuyCourse = () => {
     if (token) {
@@ -134,7 +131,7 @@ function CourseDetails() {
       return
     }
     if (token) {
-      dispatch(addToCart(response?.data.courseDetails))
+      dispatch(addToCart(response.data.courseDetails))
       return
     }
     setConfirmationModal({
@@ -149,17 +146,16 @@ function CourseDetails() {
 
   const handleGoToCourse = () => {
     navigate(`/dashboard/enrolled-courses`)
-    
   }
+
+  const isFree = price === 0
 
   return (
     <>
-      <div className="relative w-full bg-richblack-800">
+      <div className="relative w-full bg-black">
         <div className="mx-auto box-content px-4 lg:w-[1260px] 2xl:relative">
           <div className="mx-auto grid min-h-[450px] max-w-maxContentTab justify-items-center py-8 lg:mx-0 lg:justify-items-start lg:py-0 xl:max-w-[810px]">
-            <div className="mb-5 lg:mt-10 lg:mb-0 z-[100]" onClick={() => navigate(-1)}>
-              <GiReturnArrow className="w-10 h-10 text-white hover:text-richblack-25 cursor-pointer" />
-            </div>
+          
             <div className="relative block max-h-[30rem] lg:hidden">
               <Img
                 src={thumbnail}
@@ -169,8 +165,8 @@ function CourseDetails() {
               <div className="absolute bottom-0 left-0 h-full w-full shadow-[#161D29_0px_-64px_36px_-28px_inset]"></div>
             </div>
             <div className="mb-5 flex flex-col justify-center gap-4 py-5 text-lg text-richblack-5">
-              <h1 className="text-4xl font-bold text-richblack-5 sm:text-[42px]">{courseName}</h1>
-              <p className='text-richblack-200'>{courseDescription}</p>
+              <h1 className="text-4xl font-bold text-richblack-5 w-full sm:text-[42px]">{courseName}</h1>
+              <p className='text-richblack-200 text-xs'>{courseDescription}</p>
               <div className="text-md flex flex-wrap items-center gap-2">
                 <span className="text-white">{avgReviewCount}</span>
                 <RatingStars Review_Count={avgReviewCount} Star_Size={24} />
@@ -190,8 +186,10 @@ function CourseDetails() {
               </div>
             </div>
             <div className="flex w-full flex-col gap-4 border-y border-y-richblack-500 py-4 lg:hidden">
-              <p className="space-x-3 pb-4 text-3xl font-semibold text-richblack-5">Rs. {price}</p>
-              {isUserEnrolled ? (
+              <p className="space-x-3 pb-4 text-3xl font-semibold text-richblack-5">
+                {isFree ? "Free" : `Rs. ${price}`}
+              </p>
+              {isUserEnrolled || isFree ? (
                 <button 
                   className="bg-white text-richblack-900 font-semibold py-2 px-4 rounded-lg hover:bg-richblack-900 hover:text-white transition-all duration-200"
                   onClick={handleGoToCourse}

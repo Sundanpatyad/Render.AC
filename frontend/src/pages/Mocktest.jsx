@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useMemo } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
-import { useQuery, useQueryClient } from 'react-query'
+import { useQuery } from 'react-query'
 import { fetchAllMockTests } from '../services/operations/mocktest'
 import { buyItem } from '../services/operations/studentFeaturesAPI'
 import { addToCart } from '../slices/cartSlice'
@@ -10,9 +10,10 @@ import { FaBookOpen, FaShoppingCart } from 'react-icons/fa'
 import Footer from "../components/common/Footer"
 import ConfirmationModal from "../components/common/ConfirmationModal"
 import { ACCOUNT_TYPE } from "../utils/constants"
+import LoadingSpinner from '../components/core/ConductMockTests/Spinner'
 
 const MockTestCardSkeleton = () => (
-  <div className="bg-richblack-900 w-full rounded-xl overflow-hidden shadow-lg animate-pulse">
+  <div className="bg-black w-full rounded-xl overflow-hidden shadow-lg animate-pulse">
     <div className="h-28 sm:h-32 md:h-40 bg-richblack-700"></div>
     <div className="p-3 sm:p-4 md:p-6">
       <div className="h-4 bg-richblack-700 rounded w-3/4 mb-2"></div>
@@ -32,10 +33,10 @@ const MockTestCard = React.memo(({ mockTest, handleAddToCart, handleBuyNow, hand
 
   return (
     <div 
-      className="bg-richblack-900 w-full rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 cursor-pointer flex flex-col"
+      className="bg-black border border-slate-500 w-full rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 cursor-pointer flex flex-col"
       onClick={() => navigate(`/mock-test/${mockTest._id}`)}
     >
-      <div className="relative h-28 sm:h-32 md:h-40 bg-gradient-to-br from-white to-pink-500">
+      <div className="relative h-28 sm:h-32 md:h-40 bg-gradient-to-br from-white to-slate-700">
         <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-80 p-2">
           <h3 className="text-base sm:text-lg md:text-xl lg:text-2xl font-bold text-white text-center">{mockTest.seriesName}</h3>
         </div>
@@ -44,7 +45,9 @@ const MockTestCard = React.memo(({ mockTest, handleAddToCart, handleBuyNow, hand
         <p className="text-xs sm:text-sm md:text-base text-richblack-100 mb-2 sm:mb-4 line-clamp-2">{mockTest.description}</p>
         <div className="flex justify-between items-center text-xs sm:text-sm text-richblack-200 mb-2 sm:mb-4 md:mb-6">
           <div className="flex items-center">
-            <p className="font-medium">₹{mockTest.price}</p>
+            <p className="font-semibold bg-white px-3 rounded-full text-black">
+              {mockTest.price === 0 ? 'Free' : `₹${mockTest.price}`}
+            </p>
           </div>
           <div className="flex items-center">
             <FaBookOpen className="mr-1 text-richblack-50" />
@@ -53,7 +56,7 @@ const MockTestCard = React.memo(({ mockTest, handleAddToCart, handleBuyNow, hand
         </div>
         <div className="flex flex-col space-y-2">
           {isLoggedIn ? (
-            isEnrolled ? (
+            isEnrolled || mockTest.price === 0 ? (
               <button
                 onClick={(e) => {
                   e.stopPropagation()
@@ -94,7 +97,7 @@ const MockTestCard = React.memo(({ mockTest, handleAddToCart, handleBuyNow, hand
               }}
               className="w-full py-2 px-3 bg-white text-richblack-900 font-semibold rounded-lg text-center transition-all duration-300 hover:bg-richblack-900 hover:text-white text-xs sm:text-sm"
             >
-              Login to Purchase
+              Login to {mockTest.price === 0 ? 'Start' : 'Purchase'}
             </button>
           )}
         </div>
@@ -106,7 +109,6 @@ const MockTestCard = React.memo(({ mockTest, handleAddToCart, handleBuyNow, hand
 const MockTestComponent = () => {
   const { token } = useSelector((state) => state.auth)
   const { user } = useSelector((state) => state.profile)
-  const [active, setActive] = useState(1)
   const [confirmationModal, setConfirmationModal] = useState(null)
   const navigate = useNavigate()
   const dispatch = useDispatch()
@@ -162,10 +164,12 @@ const MockTestComponent = () => {
     }
 
     try {
-      await buyItem(token, [mockTest._id], ['MOCK_TEST'], user, navigate, dispatch)
-      
+      const data =  await buyItem(token, [mockTest._id], ['MOCK_TEST'], user, navigate, dispatch);
+      console.log(data);
+      toast.success("Mock test purchased successfully!")
     } catch (error) {
       console.error("Error purchasing mock test:", error)
+      toast.error("Failed to purchase mock test")
     }
   }, [isLoggedIn, user, navigate, dispatch, token])
 
@@ -187,53 +191,26 @@ const MockTestComponent = () => {
   const memoizedMockTests = useMemo(() => mockTests || [], [mockTests])
 
   if (isLoading) {
-    return <LoadingSkeleton />
+    return <LoadingSpinner title={"Loading Mocktest..."}/>
   }
 
   return (
     <div className="min-h-screen flex flex-col">
-      {/* Hero Section */}
-      {/* <div className="bg-richblack-800 px-4 py-8 sm:py-12">
-        <div className="mx-auto flex min-h-[180px] sm:min-h-[220px] max-w-maxContentTab flex-col justify-center gap-4 lg:max-w-maxContent">
-          <p className="text-xs sm:text-sm text-richblack-300">
-            Home / <span className="text-white">Mock Tests</span>
-          </p>
-          <h1 className="text-2xl sm:text-3xl md:text-4xl text-richblack-5 font-bold">Prepare with Our Mock Tests</h1>
-          <p className="max-w-[870px] text-sm sm:text-base text-richblack-200">
-            Enhance your skills and boost your confidence with our comprehensive mock tests designed to simulate real exam conditions.
-          </p>
-        </div>
-      </div> */}
-
-      {/* Mock Tests Section */}
-      <div className="flex-grow mx-auto w-full max-w-maxContent px-4 py-8 sm:py-12">
-        <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-richblack-5 mb-4">Available Mock Test Series</h2>
-        <div className="my-4 flex border-b border-b-richblack-600 text-xs sm:text-sm">
-          <p
-            className={`px-2 sm:px-4 py-2 ${active === 1
-              ? "border-b border-b-white text-white"
-              : "text-richblack-50"
-              } cursor-pointer`}
-            onClick={() => setActive(1)}
-          >
-            Most Popular
-          </p>
-          <p
-            className={`px-2 sm:px-4 py-2 ${active === 2
-              ? "border-b border-b-white text-white"
-              : "text-richblack-50"
-              } cursor-pointer`}
-            onClick={() => setActive(2)}
-          >
-            New
-          </p>
-        </div>
-        {memoizedMockTests.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 mt-8">
-            {memoizedMockTests.map((mockTest) => (
-              <MockTestCard 
-                key={mockTest._id} 
-                mockTest={mockTest} 
+    <div className="flex-grow align-center justify-center mx-auto w-full max-w-maxContent px-4 py-8 sm:py-12">
+      <h2 className="text-3xl h-[20vh] sm:text-3xl md:text-5xl text-center my-10 text-richblack-5 mb-4">
+        Test Your Knowledge with <i className="text-slate-300">Confidence</i>
+      </h2>
+  
+      {memoizedMockTests.length > 0 ? (
+        <div>
+          {/* Display the latest mock test first */}
+          {memoizedMockTests
+            .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+            .slice(0, 1)
+            .map((mockTest) => (
+              <MockTestCard
+                key={mockTest._id}
+                mockTest={mockTest}
                 handleAddToCart={handleAddToCart}
                 handleBuyNow={handleBuyNow}
                 handleStartTest={handleStartTest}
@@ -241,22 +218,40 @@ const MockTestComponent = () => {
                 isEnrolled={mockTest.studentsEnrolled?.includes(user?._id)}
               />
             ))}
+  
+          {/* Display the rest of the mock tests in descending order */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 mt-8">
+            {memoizedMockTests
+              .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+              .slice(1)
+              .map((mockTest) => (
+                <MockTestCard
+                  key={mockTest._id}
+                  mockTest={mockTest}
+                  handleAddToCart={handleAddToCart}
+                  handleBuyNow={handleBuyNow}
+                  handleStartTest={handleStartTest}
+                  isLoggedIn={isLoggedIn}
+                  isEnrolled={mockTest.studentsEnrolled?.includes(user?._id)}
+                />
+              ))}
           </div>
-        ) : (
-          <p className="text-center text-xl text-richblack-5 bg-richblack-800 rounded-lg p-8 shadow-lg mt-8">
-            No published mock tests available at the moment. Check back soon!
-          </p>
-        )}
-      </div>
-
-      <Footer />
-      {confirmationModal && <ConfirmationModal modalData={confirmationModal} />}
+        </div>
+      ) : (
+        <p className="text-center text-xl text-richblack-5 bg-richblack-800 rounded-lg p-8 shadow-lg mt-8">
+          No published mock tests available at the moment. Check back soon!
+        </p>
+      )}
     </div>
+  
+    <Footer />
+    {confirmationModal && <ConfirmationModal modalData={confirmationModal} />}
+  </div>
   )
 }
 
 const LoadingSkeleton = React.memo(() => (
-  <div className="w-full p-4 sm:p-8 bg-richblack-900">
+  <div className="w-full p-4 sm:p-8 bg-black">
     <div className="h-8 sm:h-10 w-3/4 bg-richblack-700 rounded-full mb-8 sm:mb-12 mx-auto"></div>
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
       {[...Array(6)].map((_, index) => (
