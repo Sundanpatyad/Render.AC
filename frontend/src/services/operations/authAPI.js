@@ -147,14 +147,7 @@ export function login(email, password, navigate) {
         throw new Error(response.data.message)
       }
 
-      toast('Login Successful , Enjoy The Expreience ', {
-        icon: '👏',
-        style: {
-          borderRadius: '10px',
-          background: '#333',
-          color: '#fff',
-        },
-      });
+      toast.success('Login Successful , Enjoy The Expreience ');
       dispatch(setToken(response.data.token))
 
       const userImage = response.data?.user?.image
